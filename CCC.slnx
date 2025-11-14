@@ -1,1 +1,5 @@
-﻿<Solution />
+﻿<Solution>
+  <Project Path="CCC25\CCC25.csproj" Type="Classic C#" />
+  <Project Path="Drone\Drone.csproj" Type="Classic C#" />
+  <Project Path="Shared\Shared.csproj" Type="Classic C#" />
+</Solution>
