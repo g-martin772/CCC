@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <meta name="description" content="This is a visualizer for the 41th CCC, school edition. Use this to help verify your solutions! To use it, open this file in your browser.">
+  <title>CCC | Asteroid Mining</title>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Asteroid Mining</h1>
+    <p>
+      This is an interactive tool to help you <strong>prototype</strong> and <strong>visualize</strong> your solutions.<br/>
+      <em>Try clicking on the grid below.</em>
+    </p>
+  </div>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="39 48 384 284" width="200" id="codinator">
+    <polygon fill="#FDDD00" points="
+      59.65 53.93 52.5 53.93 52.5 61.08 59.65 61.08 66.8 61.08 66.8 53.93 59.65 53.93
+    "/>
+    <polygon fill="#FDDD00" points="
+      173.98 311.18 173.98 318.33 181.13 318.33
+      181.13 311.18 181.13 304.04 181.13 296.89
+      173.98 296.89 173.98 304.04 173.98 311.18
+    "/>
+    <rect fill="#FDDD00" x="181.13" y="318.33" width="7.15" height="7.15"/>
+    <polygon fill="#FDDD00" points="
+      409.79 61.08 409.79 53.93 402.65 53.93 395.5 53.93 395.5 61.08 402.65 61.08 409.79 61.08
+    "/>
+    <path fill="#FDDD00" d="
+      m409.79,103.95v-14.29h-7.15v-14.29h-7.15v-14.29h-7.15v7.15h-7.15v14.29h7.15v7.15h7.15v14.29h7.15
+      v21.44h-7.15v7.15h-7.15v7.15h-71.46v7.15h-21.44v7.15h-14.29v7.15h-7.15v-7.15h-14.29v-7.15h-57.17
+      v7.15h-14.29v7.15h-7.15v-7.15h-14.29v-7.15h-21.44v-7.15h-71.46v-7.15h-7.15v-7.15h-7.15v-21.44h7.15
+      v-14.29h7.15v-7.15h7.15v-14.29h-7.15v-7.15h-7.15v14.29h-7.15v14.29h-7.15v14.29h-7.15v42.87h7.15
+      v7.15h7.15v7.15h35.73v7.15h35.73v7.15h7.15v7.15h7.15v28.58h7.15v7.15h7.15v42.87h7.15v35.73h7.15
+      v-7.15h7.15v-7.15h28.58v-7.15h14.29v-7.15h14.29v7.15h14.29v7.15h28.58v7.15h7.15v7.15h7.15
+      v-35.73h7.15v-42.87h7.15v-7.15h7.15v-28.58h7.15v-7.15h7.15v-7.15h35.73v-7.15h35.73v-7.15h7.15
+      v-7.15h7.15v-42.87h-7.15Zm-128.62,128.62v14.29h-7.15v7.15h-28.58v-14.29h14.29v-7.15h14.29
+      v-7.15h7.15v7.15Zm-71.46,21.44h-21.44v-7.15h-7.15v-21.44h7.15v7.15h14.29v7.15h14.29v14.29h-7.15Z
+    "/>
+    <polygon fill="#FDDD00" points="
+      281.17 304.04 281.17 311.18 281.17 318.33
+      288.32 318.33 288.32 311.18 288.32 304.04
+      288.32 296.89 281.17 296.89 281.17 304.04
+    "/>
+    <rect fill="#FDDD00" x="274.02" y="318.33" width="7.15" height="7.15"/>
+  </svg>
+</header>
+<main class="labeled-control">
+  <label for="asteroid-input">Asteroid</label>
+  <div class="controls-row">
+    <div class="labeled-control">
+      <textarea id="asteroid-input"
+                cols="50" rows="16"
+                placeholder="Character representation"
+      >
+3 5 6
+#S###
+#XX:#
+#:X:#
+#:X:#
+#:X:#
+#:X:#
+#####</textarea>
+      <label for="asteroid-input"><small>Paste or drag and drop file</small></label>
+    </div>
+    <div class="controls-column">
+      <button id="reset-tunnels-button">RESET TUNNELS</button>
+      <span>Objectives:</span>
+      <div class="stats">
+        <span>Dug tiles:</span>
+        <strong id="stats-number"></strong>
+        <span>≤</span>
+        <strong id="stats-number-max"></strong>
+      </div>
+      <div class="stats">
+        <span>Tunnel connected:</span>
+        <strong id="stats-connected"></strong>
+      </div>
+      <div class="stats">
+        <span>All tiles reached:</span>
+        <strong id="stats-all-reached"></strong>
+      </div>
+    </div>
+  </div>
+</main>
+<div id="svg-container"></div>
+</body>
+
+<style>
+  html {
+    color-scheme: dark;
+    background: #27272A;
+    font-family: Arial, sans-serif;
+  }
+
+  body {
+    margin: 0;
+    padding: 1rem;
+
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  h1 {
+    color: #FDDD00;
+    margin: 1rem 0;
+  }
+
+  p, label {
+    margin: 0;
+  }
+
+  small {
+    color: lightgray;
+  }
+
+  strong {
+    color: #FDDD00;
+
+    &[valid='false'] {
+      color: #EE1010;
+    }
+
+    &[valid='true'] {
+      color: #30DD10;
+    }
+  }
+
+  textarea {
+    background: #27272A;
+    outline: none;
+    border: 2px solid white;
+    border-radius: 5px;
+    padding: 0.5rem;
+
+    &:focus-visible {
+      border: 2px solid #FDDD00;
+    }
+  }
+
+  button {
+    min-width: 3rem;
+    min-height: 3rem;
+    background: #FDDD00;
+    color: black;
+    border: 2px solid #FDDD00;
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 14px;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid #FDDD00;
+      outline-offset: 2px;
+    }
+  }
+
+  header {
+    display: flex;
+  }
+
+  #codinator {
+    margin: -0.5rem 0 -1rem 0;
+    cursor: help;
+  }
+
+  .controls-row {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .controls-column {
+    width: 14rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .labeled-control {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .stats {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  #svg-container {
+    display: flex;
+    width: fit-content;
+    height: fit-content;
+
+    & svg {
+      background-color: #27272A;
+
+      > rect[tile-value='?'] {
+        fill: #FF00FF;
+
+        &:hover {
+          cursor: help;
+        }
+      }
+
+      > rect[tile-value='S'] {
+        fill: transparent;
+
+        &:hover {
+          cursor: not-allowed;
+        }
+      }
+
+      > rect[tile-value='#'] {
+        fill: #888888;
+
+        &:hover {
+          cursor: not-allowed;
+        }
+      }
+
+      > rect[tile-value=':'] {
+        fill: #FDDD00;
+
+        &[tile-reached='false'] {
+          fill: #998400;
+        }
+
+        &[highlighted='true'] {
+          fill: #EE1010;
+        }
+
+        &:hover {
+          cursor: cell;
+        }
+      }
+
+      > rect[tile-value='X'] {
+        fill: transparent;
+
+        &[tile-connected='false'] {
+          fill: #600A00;
+        }
+
+        &[highlighted='true'] {
+          fill: #0000FF;
+        }
+
+        &:hover {
+          cursor: cell;
+        }
+      }
+    }
+  }
+</style>
+
+<script>
+  /**
+   * @typedef GlobalState
+   * @type {object}
+   * @property {GameState} game - Container for all game related data.
+   * @property {InputState} input - Container for input parsing related data.
+   */
+
+  /**
+   * @typedef GameState
+   * @type {object}
+   * @property {number} maxCols - The maximum width of the asteroid in tiles.
+   * @property {number} maxRows - The maximum height of the asteroid in tiles.
+   * @property {number} cols - The width of the asteroid in tiles.
+   * @property {number} rows - The height of the asteroid in tiles.
+   * @property {TilePosition} outpost - The position of the outpost.
+   * @property {number} digLimit - The maximum number dig operations allowed.
+   * @property {Array.<Array.<string>>} tiles - Asteroid tile types.
+   * @property {Array.<Array.<number>>} tileTunnelId - Asteroid tile connected tunnel ids.
+   * @property {Array.<Array.<number>>} tileReached - Asteroid tile aired status.
+   * @property {number} connectedTunnelCount - The number of connected tunnels.
+   * @property {number} nonAiredTileCount - The number of non-aired tunnels.
+   * @property {TilePosition} hoverPosition - Last tile position the mouse was on.
+   * @property {string} lastModifiedTile - The last tile type modified by clicking. Meant to maintain applying this operation until a new click is provided.
+   * @property {Array.<HTMLElement>} highlightedElements - List of elements that are currently selected.
+   */
+
+  /**
+   * @typedef InputState
+   * @type {object}
+   * @property {number} previousWidth - The width of the asteroid in the previous input.
+   * @property {number} previousHeight - The height of the asteroid in the previous input.
+   * @property {boolean} shouldOverwriteInput - Controls if the input textarea is overwritten on blur.
+   */
+
+  const MAX_MAP_SIZE = 201;
+
+  const BEDROCK = '#';
+  const SOFT_ROCK = ':';
+  const OUTPOST = 'S';
+  const TUNNEL = 'X';
+  const MAP_TILE_UNINITIALIZED = '?';
+
+  const TUNNEL_TILE_UNINITIALIZED = 0;
+  const TUNNEL_TILE_FIRST_ID = 1;
+
+  const REACHED_TILE_UNINITIALIZED = 0;
+  const REACHED_TILE_VALID = 1;
+  const REACHED_TILE_INVALID = 2;
+
+  class TilePosition {
+    /**
+     * Create a tile position object.
+     * @param {number} col
+     * @param {number} row
+     */
+    constructor(col = 0, row = 0) {
+      this.col = col;
+      this.row = row;
+    }
+
+    /**
+     * Add two positions and return the result as a new position.
+     * @param {TilePosition} p - The position to be added.
+     * @return {TilePosition} The resulting addition.
+     */
+    add(p) {
+      return new TilePosition(this.col + p.col, this.row + p.row);
+    }
+  }
+
+  /** @type {Array.<TilePosition>} */
+  const DIRECTIONS = [
+    new TilePosition( 1,  0),
+    new TilePosition( 0, -1),
+    new TilePosition(-1,  0),
+    new TilePosition( 0,  1),
+  ];
+
+  /** @type {GlobalState} */
+  const state = {
+    game: {
+      maxCols: MAX_MAP_SIZE,
+      maxRows: MAX_MAP_SIZE,
+      cols: MAX_MAP_SIZE,
+      rows: MAX_MAP_SIZE,
+      outpost: new TilePosition(),
+      digLimit: 0,
+      tiles: [],
+      tileTunnelId: [],
+      tileReached: [],
+      connectedTunnelCount: 0,
+      nonAiredTileCount: 0,
+      hoverPosition: new TilePosition(),
+      lastModifiedTile: MAP_TILE_UNINITIALIZED,
+      highlightedElements: [],
+    },
+    input: {
+      previousWidth: 0,
+      previousHeight: 0,
+      shouldOverwriteInput: false,
+    },
+  };
+
+  /** @type {number} tileSize - The size of a tile in pixels. */
+  const tileSize = 32;
+
+  const resetTunnelsButton = document.getElementById('reset-tunnels-button');
+  const statsNumber = document.getElementById('stats-number');
+  const statsNumberMax = document.getElementById('stats-number-max');
+  const statsConnected = document.getElementById('stats-connected');
+  const statsAllReached = document.getElementById('stats-all-reached');
+  const asteroidInput = document.getElementById('asteroid-input');
+  const svgContainer = document.getElementById('svg-container');
+  const codinator = document.getElementById('codinator');
+
+  state.game.tiles = createArray2D(state.game.maxCols, state.game.maxRows, SOFT_ROCK);
+
+  recalculate();
+
+  resetTunnelsButton.addEventListener('click', () => resetTiles());
+  asteroidInput.addEventListener('input', () => recalculate());
+  asteroidInput.addEventListener('blur', () => blurInput());
+  asteroidInput.addEventListener('dragover', onInputDragOver);
+  asteroidInput.addEventListener('drop', onInputDrop);
+  codinator.addEventListener('mousedown', () => secret());
+  svgContainer.addEventListener('mousedown', svgOnMousedown);
+  svgContainer.addEventListener('mouseover', svgOnMouseover);
+  svgContainer.addEventListener('mouseout', svgOnMouseout);
+
+  // Input functions
+
+  /**
+   * Update the targeted positions with new value.
+   * @param {Array.<TilePosition>} tilePositions - The positions to update on the grid
+   * @param {string} newTile - The new value of the tile.
+   */
+  function updateTile(tilePositions, newTile) {
+    for (const {col, row} of tilePositions) {
+      state.game.tiles[row][col] = newTile;
+    }
+
+    recalculateInputFromState();
+    validateAndUpdateStats();
+    populateSvgWithTileValues();
+  }
+
+  /**
+   * Update the UI to indicate the status of the level condition.
+   * @param {number} value - The number of dug tiles.
+   * @param {number} maxValue - The maximum number of dug tiles.
+   */
+  function updateStatsNumber(value, maxValue) {
+    statsNumber.textContent = `${value}`;
+    statsNumberMax.textContent = `${maxValue}`;
+    const valid = value <= maxValue;
+    statsNumber.setAttribute('valid', `${valid}`);
+  }
+
+  /**
+   * Update the UI to indicate the status of the level condition.
+   * @param {boolean} valid - The tunnel connection criteria are met.
+   */
+  function updateStatsConnected(valid) {
+    statsConnected.textContent = valid ? 'YES' : 'NO';
+    statsConnected.setAttribute('valid', `${valid}`);
+  }
+
+  /**
+   * Update the UI to indicate the status of the level condition.
+   * @param {boolean} valid - The tunnel connection criteria are met.
+   */
+  function updateStatsAllReached(valid) {
+    statsAllReached.textContent = valid ? 'YES' : 'NO';
+    statsAllReached.setAttribute('valid', `${valid}`);
+  }
+
+  /** Measure dug tile counts and validate and update the UI with the information. */
+  function validateAndUpdateStats() {
+    if (state.game.rows === 0 || state.game.cols === 0) {
+      return;
+    }
+
+    validateDugConnected();
+    validateAllReached();
+
+    const dugTileCount = countDugTiles();
+    updateStatsNumber(dugTileCount, state.game.digLimit);
+  }
+
+  /** Validate that the dug tiles are connected and label each tile respectively. */
+  function validateDugConnected() {
+    state.game.tileTunnelId = createArray2D(state.game.cols, state.game.rows, TUNNEL_TILE_UNINITIALIZED);
+    validateDugConnectedFloodFill(state.game.outpost);
+    let lastTunnelId = TUNNEL_TILE_FIRST_ID;
+    for (let row = 1; row < state.game.rows - 1; ++row) {
+      for (let col = 1; col < state.game.cols - 1; ++col) {
+        const tile = state.game.tiles[row][col];
+        const tunnelId = state.game.tileTunnelId[row][col];
+        if (tile === TUNNEL && tunnelId === TUNNEL_TILE_UNINITIALIZED) {
+          validateDugConnectedFloodFill(new TilePosition(col, row), ++lastTunnelId);
+        }
+      }
+    }
+    state.game.connectedTunnelCount = lastTunnelId;
+    updateStatsConnected(lastTunnelId === TUNNEL_TILE_FIRST_ID);
+  }
+
+  /**
+   *
+   * @param {TilePosition} tilePosition - The position of the tile to fill from.
+   * @param {number} [tunnelId = TUNNEL_TILE_FIRST_ID] - Tunnel id to 'spread' to other tiles.
+   */
+  function validateDugConnectedFloodFill(tilePosition, tunnelId = TUNNEL_TILE_FIRST_ID) {
+    state.game.tileTunnelId[tilePosition.row][tilePosition.col] = tunnelId;
+    for (const direction of DIRECTIONS) {
+      const neighborPosition = tilePosition.add(direction);
+      if (neighborPosition.row < 1 || neighborPosition.col < 1
+          || neighborPosition.row >= state.game.rows - 1 || neighborPosition.col >= state.game.cols - 1
+      ) {
+        continue;
+      }
+      const neighborTile = state.game.tiles[neighborPosition.row][neighborPosition.col];
+      const neighborTunnelId = state.game.tileTunnelId[neighborPosition.row][neighborPosition.col];
+      if (neighborTile === TUNNEL && neighborTunnelId === TUNNEL_TILE_UNINITIALIZED) {
+        validateDugConnectedFloodFill(neighborPosition, tunnelId);
+      }
+    }
+  }
+
+  /** Validate the adjacency of each soft rock to the main tunnel */
+  function validateAllReached() {
+    state.game.tileReached = createArray2D(state.game.cols, state.game.rows, REACHED_TILE_UNINITIALIZED);
+    let nonAiredTileCount = 0;
+    for (let row = 1; row < state.game.rows - 1; ++row) {
+      for (let col = 1; col < state.game.cols - 1; ++col) {
+        const tile = state.game.tiles[row][col];
+        if (tile === SOFT_ROCK) {
+          let airedStatus = isTileAdjacentToTunnel(col, row) ? REACHED_TILE_VALID : REACHED_TILE_INVALID;
+          state.game.tileReached[row][col] = airedStatus;
+          if (airedStatus === REACHED_TILE_INVALID) {
+            ++nonAiredTileCount;
+          }
+        }
+      }
+    }
+    state.game.nonAiredTileCount = nonAiredTileCount;
+    updateStatsAllReached(nonAiredTileCount === 0);
+  }
+
+  /**
+   * Check if the tile is adjacent to the main tunnel.
+   * @param {number} col - The X coordinate of the tile.
+   * @param {number} row - The Y coordinat of the tile.
+   * @return {boolean} Is adjacent to the main tunnel.
+   */
+  function isTileAdjacentToTunnel(col, row) {
+    const tilePosition = new TilePosition(col, row);
+    for (const direction of DIRECTIONS) {
+      const {col, row} = tilePosition.add(direction);
+      const neighborTile = state.game.tileTunnelId[row][col];
+      if (neighborTile === TUNNEL_TILE_FIRST_ID) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Handle the asteroid input and update the game state with new data.
+   */
+  function recalculate() {
+    parseInputAndUpdateState();
+    validateAndUpdateStats();
+    createSvg();
+  }
+
+  /**
+   * Parse the input and update the internal state.
+   * Also update the input with the new, deduced, values.
+   */
+  function parseInputAndUpdateState() {
+    const lines = normalizeInput(asteroidInput.value)
+        .filter(line => !/^\d+$/.test(line));
+
+    let width = null;
+    let height = null;
+    let digLimit = null;
+    let overwriteInput = false;
+
+    if (/^\d/.test(lines[0])) {
+      const parts = lines[0].split(/\s/)
+          .map(part => Number.parseInt(part));
+      lines.shift();
+
+      width = parts[0] ? parts[0] + 2 : null;
+      height = parts[1] ? parts[1] + 2 : null;
+      digLimit = parts[2] || null;
+
+      if (width > MAX_MAP_SIZE) {
+        overwriteInput = true;
+        width = MAX_MAP_SIZE;
+      }
+      if (height > MAX_MAP_SIZE) {
+        overwriteInput = true;
+        height = MAX_MAP_SIZE;
+      }
+    }
+
+    let inputMapHeight = lines.length;
+    let inputMapWidth = lines[0]?.length;
+    let previousHeight = state.input.previousHeight;
+    let previousWidth = state.input.previousWidth;
+
+    if (inputMapHeight > MAX_MAP_SIZE) {
+      overwriteInput = true;
+      inputMapHeight = MAX_MAP_SIZE;
+    }
+    if (inputMapWidth > MAX_MAP_SIZE) {
+      overwriteInput = true;
+      inputMapWidth = MAX_MAP_SIZE;
+    }
+
+    if (width == null || height == null || inputMapHeight !== height || inputMapWidth !== width) {
+      overwriteInput = true;
+      if (width == null || height == null || inputMapHeight !== previousHeight || inputMapWidth !== previousWidth) {
+        width = inputMapWidth || 0;
+        height = inputMapHeight || 0;
+      }
+    }
+
+    state.game.cols = width;
+    state.game.rows = height;
+    if (digLimit != null) {
+      state.game.digLimit = digLimit;
+    }
+    if (!overwriteInput) {
+      state.input.previousWidth = width;
+      state.input.previousHeight = height;
+    }
+    state.input.shouldOverwriteInput = overwriteInput;
+    const tiles = createArray2D(state.game.maxCols, state.game.maxRows, MAP_TILE_UNINITIALIZED);
+    for (let row = 0; row < inputMapHeight; ++row) {
+      const line = lines[row] || '';
+      for (let col = 0; col < inputMapWidth; ++col) {
+        const tile = charToMapTile(line[col]);
+        tiles[row][col] = tile;
+        if (tile === OUTPOST) {
+          state.game.outpost = new TilePosition(col, row);
+        }
+      }
+    }
+    copyArray2D(state.game.tiles, tiles, 1, inputMapWidth - 1, 1, inputMapHeight - 1);
+  }
+
+  /**
+   * Recalculate Input from state if applicable.
+   */
+  function blurInput() {
+    if (state.input.shouldOverwriteInput) {
+      recalculateInputFromState();
+      state.input.previousWidth = state.game.cols;
+      state.input.previousHeight = state.game.rows;
+      state.input.shouldOverwriteInput = false;
+    }
+  }
+
+  /**
+   * Mapping function from characters to map tiles.
+   * @param value
+   * @return {string}
+   */
+  function charToMapTile(value) {
+    switch (value) {
+      case 's':
+      case 'S':
+        return OUTPOST;
+      case 'x':
+      case 'X':
+        return TUNNEL;
+    }
+    return SOFT_ROCK;
+  }
+
+  /**
+   * Count how many dug tiles are there.
+   * @return {number} The number of dug tiles.
+   */
+  function countDugTiles() {
+    let result = 0;
+    for (let row = 1; row < state.game.rows - 1; ++row) {
+      for (let col = 1; col < state.game.cols - 1; ++col) {
+        const tileValue = state.game.tiles[row][col];
+        if (tileValue === TUNNEL) {
+          ++result;
+        }
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Event handler function for the asteroid textarea 'dragover'.
+   * @param {DragEvent} event - the event generated by dragging something over the field.
+   */
+  function onInputDragOver(event) {
+    event.stopPropagation();
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+  }
+
+  /**
+   * Event handler function for the asteroid textarea 'ondrop'.
+   * @param {DragEvent} event - the event generated by dropping something on the field.
+   */
+  function onInputDrop(event) {
+    event.stopPropagation();
+    event.preventDefault();
+    const file = event.dataTransfer.files[0];
+    const reader = new FileReader();
+    reader.onload = () => {
+      const parts = reader.result.split(/\r?\n\r?\n/);
+      asteroidInput.value = parts[0];
+      recalculate();
+    };
+    reader.readAsText(file, 'UTF-8');
+  }
+
+  // Graphics
+
+  /**
+   * Event handler for SVG 'mousedown'.
+   * @param {MouseEvent} event - The mouse event produced by the SVG.
+   */
+  function svgOnMousedown(event) {
+    const {col, row} = getTilePositionFromElement(event.target);
+    state.game.hoverPosition = new TilePosition(col, row);
+    if (!isNaN(col) && !isNaN(row)) {
+      state.game.lastModifiedTile = MAP_TILE_UNINITIALIZED;
+      svgHandleMouseAction(event, state.game.hoverPosition);
+      highlightSelection(state.game.hoverPosition);
+    }
+  }
+
+  /**
+   * Event handler for SVG 'mouseover'.
+   *
+   * Highlight the relevant elements to indicate what the click operation will do.
+   * @param {MouseEvent} event - The mouse event produced by the SVG.
+   */
+  function svgOnMouseover(event) {
+    const {col, row} = getTilePositionFromElement(event.target);
+    state.game.hoverPosition = new TilePosition(col, row);
+    if (!isNaN(col) && !isNaN(row)) {
+      svgHandleMouseAction(event, state.game.hoverPosition);
+      highlightSelection(new TilePosition(col, row));
+    }
+  }
+
+  /**
+   * Event handler for SVG 'mouseout'.
+   * reset the highlight when the mouse goes out of the svg.
+   */
+  function svgOnMouseout() {
+    state.game.hoverPosition = new TilePosition();
+    highlightSelection();
+  }
+
+  /**
+   *
+   * @param {MouseEvent} event - The mouse event produced by the SVG.
+   * @param {TilePosition} tilePosition - The position of the tile to act upon.
+   * @param {number} tilePosition.row - The tile row.
+   * @param {number} tilePosition.col - The tile col.
+   */
+  function svgHandleMouseAction(event, {row, col}) {
+    if (event.buttons & 1) {
+      const tilePositionsToBeCleared = [new TilePosition(col, row)];
+      const tile = getTileValueWithEdge(col, row);
+      if (tile === SOFT_ROCK || tile === TUNNEL) {
+        const newTile = (tile === SOFT_ROCK) ? TUNNEL : SOFT_ROCK;
+        if (state.game.lastModifiedTile === MAP_TILE_UNINITIALIZED || state.game.lastModifiedTile === newTile) {
+          updateTile(tilePositionsToBeCleared, newTile);
+          state.game.lastModifiedTile = newTile;
+        }
+      }
+    }
+  }
+
+  /**
+   * Create and update the SVG element representing the internal state.
+   *
+   * Attach event listeners to interact with the SVG.
+   */
+  function createSvg() {
+    const {cols, rows} = state.game;
+
+    const width = cols * tileSize;
+    const height = rows * tileSize;
+    const svg = createSvgElement('svg', {width, height});
+
+    for (let row = 0; row < rows; ++row) {
+      for (let col = 0; col < cols; ++col) {
+        createSvgRect(svg, col, row);
+      }
+    }
+    for (let row = 0; row <= rows; ++row) {
+      const y = row * tileSize;
+      createSvgLine(svg, 0, width, y, y);
+    }
+    for (let col = 0; col <= cols; ++col) {
+      const x = col * tileSize;
+      createSvgLine(svg, x, x, 0, height);
+    }
+
+    svgContainer.replaceChildren(svg);
+    populateSvgWithTileValues();
+  }
+
+  /**
+   * Clear current highlight and highlight next tile.
+   * @param {TilePosition} tilePosition - Tile position.
+   */
+  function highlightSelection(tilePosition = new TilePosition()) {
+    const {col, row} = tilePosition;
+
+    state.game.highlightedElements.forEach((element) => element.setAttribute('highlighted', 'false'));
+    state.game.highlightedElements = [];
+
+    addTileElementToHighlight(col, row);
+  }
+
+  /**
+   * Add the SVG Rect element at position <code>(col, row)</code> to the highlight list.
+   * @param {number} col - The grid X coordinate.
+   * @param {number} row - The grid Y coordinate.
+   */
+  function addTileElementToHighlight(col, row) {
+    const tileElement = document.getElementById(`tile-${row}-${col}`);
+    if (tileElement) {
+      tileElement.setAttribute('highlighted', 'true');
+      state.game.highlightedElements.push(tileElement);
+    }
+  }
+
+  /**
+   * Create an SVG Line element and add it to the parent svg.
+   *
+   * This line will be used to demarcate tile separation.
+   * @param {SVGElement} parent - The parent SVG element.
+   * @param {number} fromX - X starting point in pixels.
+   * @param {number} toX - X ending point in pixels
+   * @param {number} fromY - Y starting point in pixels.
+   * @param {number} toY - Y ending point in pixels.
+   */
+  function createSvgLine(parent, fromX, toX, fromY, toY) {
+    const result = createSvgElement('line', {
+      x1: fromX,
+      y1: fromY,
+      x2: toX,
+      y2: toY,
+      stroke: '#888888',
+      strokeWidth: 2,
+    });
+    parent.appendChild(result);
+  }
+
+  /**
+   * Create an SVG Rect element and add it the parent svg.
+   *
+   * This rect will be used to represent the state of the tile.
+   * @param {SVGElement} parent - The parent SVG element.
+   * @param {number} col - The grid X position.
+   * @param {number} row - The grid Y position.
+   */
+  function createSvgRect(parent, col, row) {
+    const x = col * tileSize;
+    const y = row * tileSize;
+    const result = createSvgElement('rect', {
+      id: `tile-${row}-${col}`,
+      highlighted: false,
+      tileValue: 0,
+      width: tileSize,
+      height: tileSize,
+      x,
+      y,
+      fill: 'transparent',
+      col,
+      row,
+    });
+    parent.appendChild(result);
+  }
+
+  /**
+   * Create SVG Element.
+   * @param {string} name - The name of the SVG element.
+   * @param {object} attributes - Key Value map for the attributes of the SVG.
+   * @return {SVGElement}
+   */
+  function createSvgElement(name, attributes) {
+    const element = document.createElementNS('http://www.w3.org/2000/svg', name);
+    for (let key in attributes) {
+      const keyKebabCase = key.replace(/[A-Z]/g, upperCaseLetter => '-' + upperCaseLetter.toLowerCase());
+      element.setAttributeNS(null, keyKebabCase, attributes[key]);
+    }
+    return element;
+  }
+
+  /** Reset all tiles. */
+  function resetTiles() {
+    for (let row = 0; row < state.game.maxRows; ++row) {
+      for (let col = 0; col < state.game.maxCols; ++col) {
+        state.game.tiles[row][col] = SOFT_ROCK;
+      }
+    }
+    recalculateInputFromState();
+    validateAndUpdateStats();
+    populateSvgWithTileValues();
+  }
+
+  /** Secret example. */
+  function secret() {
+    /* SECRET */ asteroidInput.value = '14 3 41\n#S##############\n#::X::X::X:X:X:#\n#:XX:XX:XX:::X:#\n#::X::X::XXX:X:#\n################';
+    recalculate();
+  }
+
+  /** Recalculates the input string back from the internal state and populates the field. */
+  function recalculateInputFromState() {
+    let newInput = `${state.game.cols - 2} ${state.game.rows - 2} ${state.game.digLimit}\n`;
+    for (let row = 0; row < state.game.rows; ++row) {
+      let line = '';
+      for (let col = 0; col < state.game.cols; ++col) {
+        line += getTileValueWithEdge(col, row);
+      }
+      newInput += line;
+      if (row < state.game.rows - 1) {
+        newInput += '\n';
+      }
+    }
+    asteroidInput.value = newInput;
+  }
+
+  /** Update the grid svg to reflect the current state. */
+  function populateSvgWithTileValues() {
+    for (let row = 0; row < state.game.rows; ++row) {
+      for (let col = 0; col < state.game.cols; ++col) {
+        const tileElement = document.getElementById(`tile-${row}-${col}`);
+        if (tileElement) {
+          const tile = getTileValueWithEdge(col, row);
+          const connected = state.game.tileTunnelId[row][col] === TUNNEL_TILE_FIRST_ID;
+          const reached = state.game.tileReached[row][col] === REACHED_TILE_VALID;
+          tileElement.setAttribute('tile-value', `${tile}`);
+          tileElement.setAttribute('tile-connected', `${connected}`);
+          tileElement.setAttribute('tile-reached', `${reached}`);
+          tileElement.setAttribute('highlighted', 'false');
+          tileElement.setAttribute('fill', 'transparent');
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns the tile value corrected for the edge.
+   * @param {number} col - The grid X coordinate.
+   * @param {number} row - The grid Y coordinate.
+   * @return {string} - Corrected value.
+   */
+  function getTileValueWithEdge(col, row) {
+    if (row === state.game.outpost.row && col === state.game.outpost.col) {
+      return OUTPOST;
+    }
+    if (row === 0 || col === 0 || row === state.game.rows - 1 || col === state.game.cols - 1) {
+      return BEDROCK;
+    }
+    return state.game.tiles[row][col];
+  }
+
+  // Util
+
+  /**
+   * Extract row and col from the element attributes. Meant to be called with a svg rect.
+   * @param {HTMLElement} element - The element to extract the attributes from.
+   * @returns {TilePosition} The grid position of the element.
+   */
+  function getTilePositionFromElement(element) {
+    const col = Number.parseInt(element.getAttribute('col'));
+    const row = Number.parseInt(element.getAttribute('row'));
+    return new TilePosition(col, row);
+  }
+
+  /**
+   * Cleans up the input string.
+   * Breaks input string into lines and normalizes them.
+   * 'Compresses' all adjacent spaces into one whitespace and trims the lines.
+   * @param {string} value - The input string.
+   * @returns {Array.<string>} - The normalized lines.
+   */
+  function normalizeInput(value) {
+    return value.split(/\n/)
+        .map(line => line
+            .replace(/\s+/g, ' ')
+            .trim()
+        )
+        .filter(line => line.length > 0);
+  }
+
+  /**
+   * Create a 2D array and initialize it.
+   * @template T
+   * @param {number} cols - Number of columns.
+   * @param {number} rows - Number of rows.
+   * @param {T} [value = 0] - Value to initialize the array with.
+   * @returns {Array.<Array.<T>>} Initialized array of size rows * cols.
+   */
+  function createArray2D(cols, rows, value = 0) {
+    const result = Array(rows);
+    for (let row = 0; row < rows; ++row) {
+      result[row] = Array(cols);
+      for (let col = 0; col < cols; ++col) {
+        result[row][col] = value;
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Copies data from one tile map to another.
+   * @template T
+   * @param {Array.<Array.<T>>} dst - Destination 2D array, must have sized at least that of the src.
+   * @param {Array.<Array.<T>>} src - Source 2D array.
+   * @param {number} srcFromCol - Col starting position of the src 2D array.
+   * @param {number} srcToCol - Col ending position of the src 2D array.
+   * @param {number} srcFromRow - Row starting position of the src 2D array.
+   * @param {number} srcToRow - Row ending position of the src 2D array.
+   */
+  function copyArray2D(dst, src, srcFromCol, srcToCol, srcFromRow, srcToRow) {
+    for (let row = srcFromRow; row < srcToRow; ++row) {
+      for (let col = srcFromCol; col < srcToCol; ++col) {
+        dst[row][col] = src[row][col];
+      }
+    }
+  }
+</script>
+
+</html>

@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Drone;
+namespace CCC25;
 
 public class Level2
 {
@@ -11,21 +11,61 @@ public class Level2
         var itemCount = int.Parse(data.Split('\n', 2)[0]);
         Console.WriteLine("Line count: " + itemCount);
 
-        foreach (var line in data.Split('\n').Skip(1).Take(itemCount))
+        var width = 3;
+        var drillPos = 0;
+        var depth = 0;
+        var height = 0;
+
+        foreach (var line in data.Split('\n').Skip(1))
         {
-            var sum = 0;
-            var velocity = 0;
-            foreach (var number in line.Split(' '))
+            Console.WriteLine(line);
+            if (line.StartsWith('#'))
             {
-                velocity -= 10;
-                velocity += int.Parse(number);
-                sum += velocity;
-                sum = sum > 0 ? sum : 0;
+                height++;
+                continue;
             }
 
-            output.AppendLine(sum.ToString());
+            if (line.StartsWith('\n') || line.StartsWith(' ') || line.StartsWith('\r') || string.IsNullOrWhiteSpace(line)) continue;
+
+            var numbers = line.Split(' ');
+            drillPos = int.Parse(numbers[0]);
+            depth = int.Parse(numbers[1]);
+            height = depth;
+
+            for (int i = 0; i < width + 2; i++)
+            {
+                if (i == drillPos-1)
+                    output.Append('S');
+                else
+                    output.Append('#');
+            }
+
+            for (int i = 0; i < height; i++)
+            {
+                output.AppendLine();
+                output.Append('#');
+                for (int j = 0; j < width; j++)
+                {
+                    if (j == drillPos-2 && i <= depth +1)
+                        output.Append('X');
+                    else
+                        output.Append(':');
+                }
+
+                output.Append('#');
+            }
+
+            output.AppendLine();
+            for (int i = 0; i < width + 2; i++)
+            {
+                output.Append('#');
+            }
+
+            output.AppendLine();
+            output.AppendLine();
         }
-        
+
+
         return output.ToString();
     }
 }

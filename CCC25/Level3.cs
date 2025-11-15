@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Drone;
+namespace CCC25;
 
 public class Level3
 {
@@ -10,57 +10,136 @@ public class Level3
 
         var itemCount = int.Parse(data.Split('\n', 2)[0]);
         Console.WriteLine("Line count: " + itemCount);
-        
-        var timeLimit = int.Parse(data.Split('\n', 3)[1]);
-        Console.WriteLine("TimeLimit: " + timeLimit);
 
-        foreach (var line in data.Split('\n').Skip(2).Take(itemCount))
+        var width = 3;
+        var drillPos = 0;
+        var depth = 0;
+        var height = 0;
+        var headerParsed = false;
+
+        foreach (var line in data.Split('\n').Skip(1))
         {
-            var targetHeight = int.Parse(line);
-            Console.WriteLine("TargetHeight: " + targetHeight);
-
-            var height = 0;
-            var velocity = 0;
-            var iterations = 0;
-            var targetLandingVelocity = -1;
-            
-            while (height < targetHeight)
+            if (line.StartsWith('#'))
             {
-                var a = 20;
-                velocity += a - 10;
-                height += velocity;
-                
-                output.Append($"{a} ");
-                iterations++;
+                if (line.IndexOf('S') != -1)
+                    drillPos = line.IndexOf('S');
+                continue;
             }
 
-            while (height > targetHeight)
+            if (!headerParsed && string.IsNullOrWhiteSpace(line))
             {
-                var a = 0;
-                velocity += a - 10;
-                height += velocity;
-                output.Append($"{a} ");
-                iterations++;
+                continue;
             }
 
-            // while (height > 10)
-            // {
-            //     var a = Math.Min(20, Math.Abs(targetLandingVelocity - velocity + height));
-            //     velocity += a - 10;
-            //     height += velocity;
-            //     output.Append($"{a} ");
-            //     iterations++;
-            // }
+            if (!headerParsed)
+            {
+                var numbers = line.Split(' ');
+                width = int.Parse(numbers[0]);
+                height = int.Parse(numbers[1]);
+                depth = int.Parse(numbers[2]);
+                headerParsed = true;
+                continue;
+            }
 
-            Console.WriteLine($"End height {height}");
-            Console.WriteLine($"End velocity {velocity}");
-            
-            if (iterations > timeLimit)
-                Console.WriteLine("Time limit exceeded!");
-            
-            output.Remove(output.Length - 1, 1);
+            Console.WriteLine($"Width: {width}, Height: {height}, Depth: {depth}, DrillPos: {drillPos}");
+
+            for (int i = 0; i < width + 2; i++)
+            {
+                if (i == drillPos)
+                    output.Append('S');
+                else
+                    output.Append('#');
+            }
+
+            if (width == 3)
+            {
+                output.AppendLine();
+                output.Append('#');
+
+                if (drillPos == 1)
+                {
+                    output.Append('X');
+                    output.Append('X');
+                    output.Append(':');
+                }
+                else if (drillPos == 2)
+                {
+                    output.Append(':');
+                    output.Append('X');
+                    output.Append(':');
+                }
+                else if (drillPos == 3)
+                {
+                    output.Append(':');
+                    output.Append('X');
+                    output.Append('X');
+                }
+
+                output.Append('#');
+
+
+                for (int i = 0; i < height - 1; i++)
+                {
+                    output.AppendLine();
+                    output.Append('#');
+                    for (int j = 0; j < width; j++)
+                    {
+                        if (j == 1)
+                            output.Append('X');
+                        else
+                            output.Append(':');
+                    }
+
+                    output.Append('#');
+                }
+            }
+            else
+            {
+                for (int i = 0; i < 1; i++)
+                {
+                    output.AppendLine();
+                    output.Append('#');
+                    for (int j = 0; j < width; j++)
+                    {
+                        if (j == drillPos - 1 && i <= depth + 1)
+                            output.Append('X');
+                        else
+                            output.Append(':');
+                    }
+
+                    output.Append('#');
+                }
+
+                output.AppendLine();
+                output.Append('#');
+                for (int j = 0; j < width; j++)
+                {
+                    output.Append('X');
+                }
+
+                output.Append('#');
+
+                output.AppendLine();
+                output.Append('#');
+                for (int j = 0; j < width; j++)
+                {
+                    output.Append(':');
+                }
+
+                output.Append('#');
+            }
+
             output.AppendLine();
+            for (int i = 0; i < width + 2; i++)
+            {
+                output.Append('#');
+            }
+
+            output.AppendLine();
+            output.AppendLine();
+            headerParsed = false;
         }
+
 
         return output.ToString();
     }
